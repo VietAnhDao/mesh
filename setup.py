@@ -25,7 +25,7 @@ import os
 namespace_package = 'psbody'
 
 # the CGAL archive
-CGAL_archive = convert_path('mesh/thirdparty/CGAL-4.7.tar.gz')
+#CGAL_archive = convert_path('mesh/thirdparty/CGAL-4.7.tar.gz')
 
 
 def _get_version():
@@ -42,39 +42,39 @@ def _get_version():
     return ns['__version__']
 
 
-class build_deflate_cgal(Command):
-    """Deflates CGal to a temporary build folder"""
+#class build_deflate_cgal(Command):
+#    """Deflates CGal to a temporary build folder"""
 
-    description = "deflate CGAL"
-    # option with '=' because it takes an argument
-    user_options = [('cgal-location=', None, 'specifies the location of the cgal archive (tar.gz file)'),
-                    ]
+#    description = "deflate CGAL"
+#    # option with '=' because it takes an argument
+#    user_options = [('cgal-location=', None, 'specifies the location of the cgal archive (tar.gz file)'),
+#                    ]
+#
+#    def initialize_options(self):
+#        self.build_temp = None
 
-    def initialize_options(self):
-        self.build_temp = None
+#    def finalize_options(self):
+#        self.set_undefined_options('build', ('build_temp', 'build_temp'),)
+#        pass
 
-    def finalize_options(self):
-        self.set_undefined_options('build', ('build_temp', 'build_temp'),)
-        pass
+#    def run(self):
 
-    def run(self):
+#        CGAL_dir_deflate = os.path.abspath(self.build_temp)
 
-        CGAL_dir_deflate = os.path.abspath(self.build_temp)
-
-        log.info('[CGAL] deflating cgal from "%s" to "%s"', CGAL_archive, CGAL_dir_deflate)
-        if not os.path.exists(os.path.join(CGAL_dir_deflate, 'CGAL-4.7')):
-            import tarfile
-            os.makedirs(CGAL_dir_deflate)
-
-            cgal_tar = tarfile.open(CGAL_archive, 'r:*')
-            cgal_tar.extractall(CGAL_dir_deflate)
-
-        # create a dummy configuration file
-        config_file = os.path.join(CGAL_dir_deflate, 'CGAL-4.7', 'include', 'CGAL', 'compiler_config.h')
-        if not os.path.exists(config_file):
-            open(config_file, 'w')
-
-        pass
+#        log.info('[CGAL] deflating cgal from "%s" to "%s"', CGAL_archive, CGAL_dir_deflate)
+#        if not os.path.exists(os.path.join(CGAL_dir_deflate, 'CGAL-4.7')):
+#            import tarfile
+#            os.makedirs(CGAL_dir_deflate)
+#
+#            cgal_tar = tarfile.open(CGAL_archive, 'r:*')
+#            cgal_tar.extractall(CGAL_dir_deflate)
+#
+#        # create a dummy configuration file
+#        config_file = os.path.join(CGAL_dir_deflate, 'CGAL-4.7', 'include', 'CGAL', 'compiler_config.h')
+#        if not os.path.exists(config_file):
+#            open(config_file, 'w')
+#
+#        pass
 
 
 class build_ext(_build_ext):
@@ -109,9 +109,11 @@ class build_ext(_build_ext):
         # should be possible to have boost on the system
         # assert(self.boost_location is not None), 'the boost location should be provided with the option "--boost-location"'
 
-        ext.include_dirs += [os.path.join(os.path.abspath(self.build_temp), 'CGAL-4.7', 'include')]
+        ext.include_dirs += [os.path.join(os.path.abspath(self.build_temp), '../../', 'python/mesh/third_party', 'include'), '/opt/homebrew/Cellar/boost/1.84.0_1/include/']
+        print("EXTERN_ICNLUDE: ",ext.include_dirs)
         if self.boost_location is not None:
             ext.include_dirs += [self.boost_location]
+            print("BOOST_DIR: ", self.boost_location)
 
         # Remove empty paths
         filtered = []
@@ -125,13 +127,13 @@ class build_ext(_build_ext):
         """Runs the dependant targets"""
         # the 1 at the end construct the object always, even if not specified on
         # the command line.
-        build_deflate_cgal = self.get_finalized_command('build_deflate_cgal', 1)
-        build_deflate_cgal.run()
+        #build_deflate_cgal = self.get_finalized_command('build_deflate_cgal', 1)
+        #build_deflate_cgal.run()
 
         return _build_ext.run(self)
 
     # see subcommands documentation in the original Command class
-    sub_commands = [('build_deflate_cgal', None)] + _build_ext.sub_commands
+    #sub_commands = [('build_deflate_cgal', None)] + _build_ext.sub_commands
 
 
 class install(_install):
@@ -146,8 +148,8 @@ class install(_install):
 
     def finalize_options(self):
 
-        # if self.boost_location is not None:
-        #     self.boost_location = os.path.expanduser(self.boost_location)
+        if self.boost_location is not None:
+            self.boost_location = os.path.expanduser(self.boost_location)
 
         return _install.finalize_options(self)
 
@@ -161,7 +163,7 @@ class sdist(_sdist):
         _sdist.get_file_list(self)
 
         # including the CGal archive without being forced to use the Manifest
-        self.filelist.append(CGAL_archive)
+        #self.filelist.append(CGAL_archive)
 
         # distributing the tests files without being forced to use the Manifest
         for i in os.listdir(convert_path('tests')):
@@ -212,7 +214,7 @@ def _get_all_extensions():
         ext = _Extension("%s.mesh.%s" % (namespace_package, current_package_name),
                          src_list,
                          language="c++",
-                         include_dirs=['mesh/src', numpy.get_include()],
+                         include_dirs=['mesh/src', numpy.get_include(), '/python/mesh/third_party/include'],
                          libraries=[],
                          define_macros=define_macros + additional_defines,
                          undef_macros=undef_macros,
@@ -243,7 +245,7 @@ if has_setup_tools:
     additional_kwargs['namespace_packages'] = [namespace_package]
 
 cmdclass = {'build_ext': build_ext,
-            'build_deflate_cgal': build_deflate_cgal,
+#            'build_deflate_cgal': build_deflate_cgal,
             'sdist': sdist,
             'install': install}
 
