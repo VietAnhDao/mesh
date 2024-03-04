@@ -184,7 +184,7 @@ def _get_all_extensions():
         return []
 
     # valid only for gcc/clang
-    extra_args = ['-O3']
+    extra_args = ['-O3','-std=c++14']
 
     import sys
     if sys.platform.find('linux') > -1:

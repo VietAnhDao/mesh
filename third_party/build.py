@@ -36,6 +36,7 @@ def build_generic(libname, build_flags="", cleanup=True):
             " {}/third_party/{}".format(pymesh_dir, libname) + \
             " -DBUILD_SHARED_LIBS=Off" + \
             " -DCMAKE_POSITION_INDEPENDENT_CODE=On" + \
+            " -DCMAKE_CXX_STANDARD=14" + \
             build_flags + \
             " -DCMAKE_INSTALL_PREFIX={}/python/mesh/third_party/".format(pymesh_dir);
     subprocess.check_call(cmd.split(), cwd=build_dir);
@@ -58,16 +59,6 @@ def build(package, cleanup):
     elif package == "cgal":
         build_generic("cgal",
                 " -DWITH_CGAL_ImageIO=Off -DWITH_CGAL_Qt5=Off",
-                cleanup=cleanup);
-    elif package == "clipper":
-        build_generic("Clipper/cpp", cleanup=cleanup);
-    elif package == "tbb":
-        build_generic("tbb",
-                " -DTBB_BUILD_SHARED=On -DTBB_BUILD_STATIC=Off",
-                cleanup=cleanup);
-    elif package == "json":
-        build_generic("json",
-                " -DJSON_BuildTests=Off",
                 cleanup=cleanup);
     else:
         build_generic(package, cleanup=cleanup);
